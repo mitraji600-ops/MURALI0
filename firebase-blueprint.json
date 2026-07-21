@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User identity information linked to Firebase Auth",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "username": { "type": "string", "maxLength": 30 },
+        "status": { "type": "string", "enum": ["active", "suspended", "banned"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "username", "status", "createdAt", "updatedAt"]
+    },
+    "Profile": {
+      "title": "Profile",
+      "description": "Public user profile metadata",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string", "maxLength": 50 },
+        "avatarUrl": { "type": "string" },
+        "bio": { "type": "string", "maxLength": 160 },
+        "website": { "type": "string" },
+        "creatorStatus": { "type": "boolean" },
+        "verificationStatus": { "type": "boolean" },
+        "followerCount": { "type": "number" },
+        "followingCount": { "type": "number" },
+        "privacySettings": {
+          "type": "object",
+          "properties": {
+            "isPrivate": { "type": "boolean" },
+            "allowDirectMessages": { "type": "boolean" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["displayName", "creatorStatus", "verificationStatus", "followerCount", "followingCount"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User identity records"
+    },
+    "/profiles/{userId}": {
+      "schema": { "$ref": "#/entities/Profile" },
+      "description": "Public profile information linked to userId"
+    }
+  }
+}

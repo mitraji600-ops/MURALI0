@@ -1,0 +1,8 @@
+{
+  "name": "Murli",
+  "description": "A next-generation creator platform combining feed posts, reels, podcasts, and communities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
