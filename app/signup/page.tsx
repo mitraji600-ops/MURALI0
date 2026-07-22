@@ -3,9 +3,9 @@
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { CyberpunkLoader } from '@/components/cyberpunk-loader';
+import { Loader } from '@/components/loader';
+import * as motion from 'motion/react-client';
 
 export default function SignupPage() {
   const { user, signUpWithEmail, signInWithGoogle, loading } = useAuth();
@@ -28,7 +28,7 @@ export default function SignupPage() {
     if (!email || !password || !confirmPassword) return;
     
     if (password !== confirmPassword) {
-      setError('Access codes do not match.');
+      setError('Passwords do not match.');
       return;
     }
     
@@ -47,90 +47,120 @@ export default function SignupPage() {
   };
 
   if (loading) {
-    return (
-      <main className="flex-1 flex min-h-screen bg-[#0a0a0a] items-center justify-center">
-        <CyberpunkLoader />
-      </main>
-    );
+    return <Loader />;
   }
 
   return (
-    <main className="flex-1 flex min-h-screen bg-[#0a0a0a] flex-col items-center justify-center p-6">
-      <div className="w-full max-w-sm flex flex-col gap-8 relative">
-        <div className="absolute -inset-4 bg-fuchsia-500/10 blur-xl rounded-full -z-10" />
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-500 mb-2 uppercase tracking-wider font-mono">Murli // Initialize</h1>
-          <p className="text-fuchsia-500/70 font-mono text-sm tracking-widest">REGISTER NEW ENTITY</p>
-        </div>
-
-        <form onSubmit={handleEmailSignUp} className="flex flex-col gap-4">
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-sm text-red-400 text-sm font-mono text-center">
-              [ERR] {error}
-            </div>
-          )}
-          <div className="flex flex-col gap-1">
-            <input 
-              type="email" 
-              placeholder="USER_IDENTIFIER (Email)" 
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="px-4 py-3 bg-[#121212] border border-fuchsia-500/30 text-fuchsia-400 font-mono text-sm placeholder:text-fuchsia-500/30 focus:outline-none focus:border-fuchsia-400 focus:shadow-[0_0_10px_rgba(217,70,239,0.2)] transition-all rounded-sm"
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <input 
-              type="password" 
-              placeholder="ACCESS_CODE (Password)" 
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="px-4 py-3 bg-[#121212] border border-fuchsia-500/30 text-fuchsia-400 font-mono text-sm placeholder:text-fuchsia-500/30 focus:outline-none focus:border-fuchsia-400 focus:shadow-[0_0_10px_rgba(217,70,239,0.2)] transition-all rounded-sm"
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <input 
-              type="password" 
-              placeholder="CONFIRM_ACCESS_CODE" 
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              className="px-4 py-3 bg-[#121212] border border-fuchsia-500/30 text-fuchsia-400 font-mono text-sm placeholder:text-fuchsia-500/30 focus:outline-none focus:border-fuchsia-400 focus:shadow-[0_0_10px_rgba(217,70,239,0.2)] transition-all rounded-sm"
-              required
-            />
-          </div>
-          <Button 
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-6 bg-fuchsia-500/20 text-fuchsia-400 hover:bg-fuchsia-500/30 border border-fuchsia-400 hover:shadow-[0_0_15px_rgba(217,70,239,0.4)] font-mono uppercase tracking-widest transition-all rounded-sm"
-          >
-            {isSubmitting ? 'Processing...' : 'Deploy_User'}
-          </Button>
-        </form>
-
-        <div className="relative flex items-center justify-center my-2">
-          <div className="absolute w-full border-t border-fuchsia-500/20"></div>
-          <span className="relative bg-[#0a0a0a] px-4 text-xs font-mono text-fuchsia-500/50 uppercase">OR_OVERRIDE</span>
-        </div>
-
-        <Button 
-          onClick={signInWithGoogle}
-          type="button"
-          className="w-full py-6 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 font-mono transition-all rounded-sm"
-        >
-          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-          </svg>
-          Google_Protocol
-        </Button>
-
-        <p className="text-center text-xs font-mono text-fuchsia-500/60 mt-4">
-          ENTITY_ALREADY_EXISTS? <Link href="/login" className="text-cyan-400 hover:text-cyan-300 hover:underline">AUTHENTICATE_NOW</Link>
-        </p>
+    <main className="flex-1 flex min-h-screen bg-[#050505] items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Gradients */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          animate={{ opacity: [0.1, 0.15, 0.1], scale: [1, 1.1, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-1/4 -right-1/4 w-1/2 h-1/2 bg-purple-600/20 blur-[120px] rounded-full"
+        />
+        <motion.div
+          animate={{ opacity: [0.1, 0.15, 0.1], scale: [1, 1.2, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -bottom-1/4 -left-1/4 w-1/2 h-1/2 bg-cyan-600/20 blur-[120px] rounded-full"
+        />
       </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md relative z-10"
+      >
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold tracking-tighter text-white mb-3">MURLI</h1>
+          <p className="text-xs font-mono tracking-[0.3em] text-zinc-500 uppercase">Future of the Past</p>
+        </div>
+
+        <div className="bg-white/[0.02] border border-white/[0.05] p-8 rounded-2xl backdrop-blur-xl">
+          <form onSubmit={handleEmailSignUp} className="flex flex-col gap-5">
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center"
+              >
+                {error}
+              </motion.div>
+            )}
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-zinc-400 ml-1">Email</label>
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all rounded-xl placeholder:text-zinc-700"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-zinc-400 ml-1">Password</label>
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all rounded-xl placeholder:text-zinc-700"
+                  placeholder="Create a password"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-zinc-400 ml-1">Confirm Password</label>
+                <input 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-black/50 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all rounded-xl placeholder:text-zinc-700"
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-4 mt-2 bg-white text-black hover:bg-zinc-200 font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Creating Account...' : 'Sign Up'}
+            </button>
+          </form>
+
+          <div className="relative flex items-center justify-center my-8">
+            <div className="absolute w-full border-t border-white/5"></div>
+            <span className="relative bg-[#0a0a0a] px-4 text-xs font-medium text-zinc-600 uppercase tracking-wider">Or continue with</span>
+          </div>
+
+          <button 
+            onClick={signInWithGoogle}
+            type="button"
+            className="w-full py-3.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-medium transition-all rounded-xl flex items-center justify-center gap-3"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            Google
+          </button>
+        </div>
+
+        <p className="text-center text-sm text-zinc-500 mt-8">
+          Already have an account?{' '}
+          <Link href="/login" className="text-white hover:text-purple-400 transition-colors font-medium">
+            Sign In
+          </Link>
+        </p>
+      </motion.div>
     </main>
   );
 }

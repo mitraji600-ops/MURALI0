@@ -4,28 +4,27 @@ import { useState } from 'react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import { useExplore } from '@/features/explore/hooks/use-explore';
-
-// Mock data, to be replaced by backend API for suggestions
-const ALL_SUGGESTIONS = ['Photography', 'Minimalism', 'Architecture', 'Soundscapes', 'Typography', 'Films', 'Art'];
+import * as motion from 'motion/react-client';
 
 export default function Explore() {
   const [search, setSearch] = useState('');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
   const { items, categories, loading, error } = useExplore();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setSearch(val);
-    if (val.length > 0) {
-      setSuggestions(ALL_SUGGESTIONS.filter(s => s.toLowerCase().includes(val.toLowerCase())));
-    } else {
-      setSuggestions([]);
-    }
+    setSearch(e.target.value);
   }
 
   return (
-    <main className="flex-1 flex flex-col min-h-screen bg-[#0a0a0a]">
-      <div className="max-w-6xl mx-auto w-full px-6 pb-24 pt-8">
+    <main className="flex-1 flex flex-col min-h-screen bg-[#050505] relative overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none fixed z-0">
+        <motion.div
+          animate={{ opacity: [0.02, 0.04, 0.02], scale: [1, 1.1, 1], rotate: [0, 5, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[10%] left-[-10%] w-[50%] h-[50%] bg-emerald-600/20 blur-[120px] rounded-full"
+        />
+      </div>
+
+      <div className="max-w-6xl mx-auto w-full px-6 pb-24 pt-8 relative z-10">
         
         {/* Search Bar */}
         <div className="relative mb-10">
@@ -36,25 +35,29 @@ export default function Explore() {
             type="text"
             value={search}
             onChange={handleSearch}
-            className="w-full bg-[#121212] border border-zinc-800 rounded-xl py-4 pl-12 pr-14 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 transition-all text-sm"
-            placeholder="Search the unknown..."
+            className="w-full bg-white/5 border border-white/10 rounded-full py-4 pl-12 pr-14 text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-white/30 transition-all text-sm backdrop-blur-sm"
+            placeholder="Search the network..."
           />
-          {suggestions.length > 0 && (
-            <div className="absolute w-full bg-[#121212] border border-zinc-800 rounded-xl mt-2 p-2 z-20 shadow-xl">
-              {suggestions.map(s => <button key={s} className="block w-full text-left p-3 hover:bg-zinc-800 rounded text-sm text-zinc-300">{s}</button>)}
-            </div>
-          )}
           <button className="absolute inset-y-0 right-4 flex items-center text-zinc-500 hover:text-white transition-colors">
             <SlidersHorizontal className="h-5 w-5" />
           </button>
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-4 border-zinc-600 border-t-zinc-300 rounded-full animate-spin" />
+          <div className="w-full flex flex-col gap-8">
+            <div className="flex gap-2">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-8 w-24 bg-white/5 rounded-full animate-pulse" />
+              ))}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[220px]">
+               {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className={`bg-white/5 rounded-2xl animate-pulse ${i === 1 || i === 4 ? 'col-span-2 row-span-2' : ''}`} />
+               ))}
+            </div>
           </div>
         ) : error ? (
-          <div className="text-center text-red-500 py-20 font-mono border-2 border-dashed border-red-800 rounded-xl">
+          <div className="text-center text-red-400 py-20 font-medium bg-red-500/5 border border-red-500/10 rounded-2xl backdrop-blur-sm">
             [ERR] Failed to load explore data.
           </div>
         ) : (
@@ -67,7 +70,7 @@ export default function Explore() {
                   className={`px-6 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                     i === 0 
                       ? 'bg-white text-black' 
-                      : 'bg-[#121212] border border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white'
+                      : 'bg-white/5 border border-white/10 text-zinc-400 hover:border-white/20 hover:text-white'
                   }`}
                 >
                   {category}
@@ -77,8 +80,12 @@ export default function Explore() {
 
             {/* Bento Grid */}
             {items.length === 0 ? (
-              <div className="text-center text-zinc-500 py-20 font-mono border-2 border-dashed border-zinc-800 rounded-xl">
-                No content found. Try a different search.
+              <div className="flex flex-col items-center justify-center py-24 text-center border border-white/5 rounded-3xl bg-white/[0.02] backdrop-blur-sm">
+                <Search className="w-12 h-12 text-white/20 mb-6" />
+                <h3 className="text-xl font-bold text-white mb-2">No Content Found</h3>
+                <p className="text-zinc-500 max-w-sm">
+                  The network is vast, but this sector is empty. Try a different search parameter.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[220px]">
@@ -90,7 +97,8 @@ export default function Explore() {
                     } ${item.rowSpan === 2 ? 'row-span-2' : 'row-span-1'}`}
                   >
                     {item.type === 'image' && (
-                      <Image src={item.src!} alt="Explore" fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover group-hover:scale-[1.02] transition-transform duration-500" referrerPolicy="no-referrer" />
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={item.src || "https://picsum.photos/seed/explore/800/800"} alt="Explore" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
                     )}
                     {item.type === 'quote' && (
                       <div className="p-8 h-full flex flex-col justify-between">
@@ -104,7 +112,8 @@ export default function Explore() {
                     {item.type === 'video' && (
                       <div className="h-full flex flex-col items-center justify-center bg-zinc-900/30 p-6 relative group-hover:bg-zinc-900/50 transition-colors">
                         <div className="absolute inset-0 z-0">
-                           <Image src={item.thumbnail!} alt="Video thumbnail" fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover blur-[2px]" referrerPolicy="no-referrer" />
+                           {/* eslint-disable-next-line @next/next/no-img-element */}
+                           <img src={item.thumbnail || "https://picsum.photos/seed/video/800/800"} alt="Video thumbnail" className="w-full h-full object-cover blur-[2px]" />
                            <div className="absolute inset-0 bg-black/40" />
                         </div>
                         <div className="relative z-10 flex flex-col items-center gap-4">
@@ -120,7 +129,8 @@ export default function Explore() {
                       </div>
                     )}
                     {item.type === 'article' && (
-                      <Image src={item.src!} alt="Article" fill sizes="(max-width: 768px) 50vw, 50vw" className="object-cover" referrerPolicy="no-referrer" />
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={item.src || "https://picsum.photos/seed/article/800/800"} alt="Article" className="w-full h-full object-cover" />
                     )}
                   </div>
                 ))}

@@ -5,17 +5,21 @@ import { usePathname } from 'next/navigation';
 import { Home, Search, PlusSquare, Mail, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import * as motion from 'motion/react-client';
+import { useAuth } from '@/hooks/use-auth';
 
 const NAV_ITEMS = [
   { href: '/', icon: Home, label: 'Feed' },
   { href: '/explore', icon: Search, label: 'Explore' },
   { href: '/create', icon: PlusSquare, label: 'Create' },
-  { href: '/inbox', icon: Mail, label: 'Inbox' },
+  { href: '/inbox', icon: Mail, label: 'Messages' },
   { href: '/profile', icon: User, label: 'Profile' }
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
+
+  if (loading || !user) return null;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0a0a0a]/90 backdrop-blur-md border-t border-zinc-800/50 flex items-center justify-around px-4 z-50">

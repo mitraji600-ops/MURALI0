@@ -2,89 +2,139 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 1. Global Safety Net
+    // 1. Global Default Deny Safety Net
     match /{document=**} {
       allow read, write: if false;
     }
 
     // Helper functions
     function isSignedIn() {
-      return request.auth != null && request.auth.token.email_verified == true;
+      return request.auth != null;
     }
-    
+
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
-    
+
     function incoming() {
       return request.resource.data;
     }
-    
+
     function existing() {
       return resource.data;
     }
-    
+
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
-    // Entity Validation Blueprints
-    function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'email', 'username', 'status', 'createdAt', 'updatedAt']) 
-        && data.keys().size() == 6
-        && data.uid == request.auth.uid
-        && data.email is string
-        && data.username is string && data.username.size() <= 30 && data.username.size() >= 3
-        && data.status in ['active', 'suspended', 'banned']
-        && data.createdAt is timestamp
-        && data.updatedAt is timestamp;
-    }
-
-    function isValidProfile(data) {
-      return data.keys().hasAll(['displayName', 'creatorStatus', 'verificationStatus', 'followerCount', 'followingCount'])
-        && data.displayName is string && data.displayName.size() <= 50
-        && data.creatorStatus is bool
-        && data.verificationStatus is bool
-        && data.followerCount is number
-        && data.followingCount is number;
-    }
-
-    // Users Collection (Strict PII Isolation)
+    // Users Collection (Identity)
     match /users/{userId} {
-      // Users can read their own identity record
       allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false; // No list queries allowed for identity records
-      
-      allow create: if isSignedIn() 
-        && isValidId(userId)
-        && isOwner(userId)
-        && isValidUser(incoming())
-        && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time;
-        
-      allow update: if isSignedIn() 
-        && isValidId(userId)
-        && isOwner(userId)
-        && isValidUser(incoming())
-        && incoming().uid == existing().uid
-        && incoming().createdAt == existing().createdAt
-        && incoming().updatedAt == request.time;
+      allow list: if false;
+      allow create, update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
     }
 
-    // Profiles Collection (Publicly readable, owner modifiable)
+    // Profiles Collection (Publicly readable)
     match /profiles/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      
-      allow create: if isSignedIn()
-        && isValidId(userId)
-        && isOwner(userId)
-        && isValidProfile(incoming());
-        
-      allow update: if isSignedIn()
-        && isValidId(userId)
-        && isOwner(userId)
-        && isValidProfile(incoming());
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
+    }
+
+    // Feed Posts
+    match /posts/{postId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().authorId == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+
+    // Reels Metadata
+    match /reels/{reelId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().authorId == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+
+    // Images Metadata
+    match /images/{imageId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().authorId == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+
+    // Podcasts Metadata
+    match /podcasts/{podcastId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().authorId == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+
+    // Likes
+    match /likes/{likeId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // Comments
+    match /comments/{commentId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // Followers & Following
+    match /followers/{followId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().followerId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().followerId == request.auth.uid;
+    }
+
+    // Saved Posts
+    match /savedPosts/{saveId} {
+      allow get, list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow get, list: if isSignedIn() && resource.data.recipientId == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && existing().recipientId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().recipientId == request.auth.uid;
+    }
+
+    // Chats & Direct Messages
+    match /chats/{chatId} {
+      allow get, list: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn() && request.auth.uid in incoming().participants;
+      allow update: if isSignedIn() && request.auth.uid in existing().participants;
+
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && incoming().senderId == request.auth.uid;
+      }
+    }
+
+    // Content Moderation Reports
+    match /reports/{reportId} {
+      allow create: if isSignedIn() && incoming().reporterId == request.auth.uid;
+      allow get, list: if false; // System / Admin only
+    }
+
+    // Creator Analytics
+    match /analytics/{userId} {
+      allow get, list: if isSignedIn() && isOwner(userId);
+      allow create, update: if isSignedIn() && isOwner(userId);
+    }
+
+    // User Settings
+    match /userSettings/{userId} {
+      allow get, list: if isSignedIn() && isOwner(userId);
+      allow create, update, delete: if isSignedIn() && isOwner(userId);
     }
   }
 }

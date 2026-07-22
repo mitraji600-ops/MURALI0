@@ -38,6 +38,204 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["displayName", "creatorStatus", "verificationStatus", "followerCount", "followingCount"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Standard feed post entity",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 100 },
+        "content": { "type": "string", "maxLength": 2000 },
+        "mediaUrl": { "type": "string" },
+        "type": { "type": "string", "enum": ["image", "video", "podcast", "text"] },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "type", "authorId", "likesCount", "commentsCount"]
+    },
+    "Reel": {
+      "title": "Reel",
+      "description": "Reel short video metadata",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "videoUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "duration": { "type": "number" },
+        "authorId": { "type": "string" },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "videoUrl", "authorId", "likesCount", "commentsCount"]
+    },
+    "Image": {
+      "title": "Image",
+      "description": "Image post metadata",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "imageUrl": { "type": "string" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "authorId": { "type": "string" },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "imageUrl", "authorId", "likesCount", "commentsCount"]
+    },
+    "Podcast": {
+      "title": "Podcast",
+      "description": "Podcast audio media metadata",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "audioUrl": { "type": "string" },
+        "duration": { "type": "number" },
+        "coverUrl": { "type": "string" },
+        "authorId": { "type": "string" },
+        "likesCount": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "audioUrl", "authorId", "likesCount", "commentsCount"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "User like record for post or reel",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetType": { "type": "string", "enum": ["post", "reel", "podcast", "image"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "targetId", "targetType"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Comment record on media",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "text": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "targetId", "text"]
+    },
+    "Follower": {
+      "title": "Follower",
+      "description": "Follower relation",
+      "type": "object",
+      "properties": {
+        "followerId": { "type": "string" },
+        "targetUserId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["followerId", "targetUserId"]
+    },
+    "SavedPost": {
+      "title": "SavedPost",
+      "description": "User saved post link",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "postId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "postId"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app user notification",
+      "type": "object",
+      "properties": {
+        "recipientId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderAvatar": { "type": "string" },
+        "type": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["recipientId", "senderId", "type", "title", "body", "read"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "Direct message chat thread",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array" },
+        "lastMessage": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["participants"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Direct message in a chat thread",
+      "type": "object",
+      "properties": {
+        "chatId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["chatId", "senderId", "text"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "User content report",
+      "type": "object",
+      "properties": {
+        "reporterId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetType": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "dismissed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["reporterId", "targetId", "targetType", "reason", "status"]
+    },
+    "Analytics": {
+      "title": "Analytics",
+      "description": "Creator account analytics",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "totalViews": { "type": "number" },
+        "totalLikes": { "type": "number" },
+        "totalComments": { "type": "number" },
+        "totalFollowers": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "Private settings and preferences",
+      "type": "object",
+      "properties": {
+        "privateAccount": { "type": "boolean" },
+        "allowMessages": { "type": "boolean" },
+        "notificationsEnabled": { "type": "boolean" },
+        "theme": { "type": "string" }
+      },
+      "required": ["privateAccount", "allowMessages"]
     }
   },
   "firestore": {
@@ -48,6 +246,62 @@
     "/profiles/{userId}": {
       "schema": { "$ref": "#/entities/Profile" },
       "description": "Public profile information linked to userId"
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Main feed posts"
+    },
+    "/reels/{reelId}": {
+      "schema": { "$ref": "#/entities/Reel" },
+      "description": "Reels videos metadata"
+    },
+    "/images/{imageId}": {
+      "schema": { "$ref": "#/entities/Image" },
+      "description": "Image library metadata"
+    },
+    "/podcasts/{podcastId}": {
+      "schema": { "$ref": "#/entities/Podcast" },
+      "description": "Podcasts audio metadata"
+    },
+    "/likes/{likeId}": {
+      "schema": { "$ref": "#/entities/Like" },
+      "description": "Interactions: user likes"
+    },
+    "/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Interactions: comments"
+    },
+    "/followers/{followId}": {
+      "schema": { "$ref": "#/entities/Follower" },
+      "description": "Follow relations"
+    },
+    "/savedPosts/{saveId}": {
+      "schema": { "$ref": "#/entities/SavedPost" },
+      "description": "Bookmarks and saved posts"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "In-app notification records"
+    },
+    "/chats/{chatId}": {
+      "schema": { "$ref": "#/entities/Chat" },
+      "description": "Direct message chat threads"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Direct messages within a chat thread"
+    },
+    "/reports/{reportId}": {
+      "schema": { "$ref": "#/entities/Report" },
+      "description": "Content moderation reports"
+    },
+    "/analytics/{userId}": {
+      "schema": { "$ref": "#/entities/Analytics" },
+      "description": "Creator metrics analytics"
+    },
+    "/userSettings/{userId}": {
+      "schema": { "$ref": "#/entities/UserSettings" },
+      "description": "Private user preferences"
     }
   }
 }

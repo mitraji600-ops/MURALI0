@@ -2,41 +2,30 @@
 
 import { Heart, MessageSquare, Repeat2, Share, Bookmark } from 'lucide-react';
 import Image from 'next/image';
-import { Card } from '@/components/ui/card';
 import { useState, memo } from 'react';
 import * as motion from 'motion/react-client';
 
-interface PostProps {
-  author?: {
-    name: string;
-    username: string;
-    avatar: string;
-  };
-  timeAgo?: string;
-  content?: string;
-  image?: string;
-  stats?: {
-    likes: string;
-    comments: string;
-    shares: string;
-  };
-}
-
-export const PostCard = memo(function PostCard({ author, timeAgo, content, image, stats }: PostProps) {
+export const PostCard = memo(function PostCard(props: any) {
   const [liked, setLiked] = useState(false);
   
-  if (!author || !stats) return null;
-
+  const authorName = props.authorName || 'Unknown User';
+  const authorAvatar = props.authorAvatar || 'https://picsum.photos/seed/user/40/40';
+  const content = props.content;
+  const image = props.mediaUrl;
+  const likes = props.likesCount || 0;
+  const comments = props.commentsCount || 0;
+  const shares = 0;
+  
   return (
-    <Card className="p-4 sm:p-6 mb-6 hover:border-zinc-700/50 transition-all duration-300">
+    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 sm:p-6 mb-6 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 backdrop-blur-sm">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 shrink-0">
-            <Image src={author.avatar} alt={author.name} width={40} height={40} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <Image src={authorAvatar} alt={authorName} width={40} height={40} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-zinc-100 text-sm">{author.name}</span>
-            <span className="text-xs text-zinc-500">@{author.username} • {timeAgo}</span>
+            <span className="font-semibold text-zinc-100 text-sm">{authorName}</span>
+            <span className="text-xs text-zinc-500">Just now</span>
           </div>
         </div>
         <button className="text-zinc-500 hover:text-zinc-300 transition-colors">
@@ -53,14 +42,23 @@ export const PostCard = memo(function PostCard({ author, timeAgo, content, image
           {content}
         </p>
         {image && (
-          <div className="rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800/50 aspect-video relative">
-            <Image src={image} alt="Post media" fill sizes="(max-width: 768px) 100vw, 42rem" className="object-cover" referrerPolicy="no-referrer" />
+          <div className="rounded-2xl overflow-hidden bg-zinc-900 border border-white/5 relative">
+            {props.type === 'video' || image.endsWith('.mp4') || image.endsWith('.webm') ? (
+              <video src={image} controls className="w-full aspect-video object-cover rounded-2xl" />
+            ) : props.type === 'podcast' || image.endsWith('.mp3') || image.endsWith('.wav') ? (
+              <div className="p-4 bg-white/5 rounded-2xl">
+                <audio src={image} controls className="w-full" />
+              </div>
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={image} alt="Post media" className="w-full max-h-[500px] object-cover rounded-2xl" />
+            )}
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
-        <div className="flex items-center gap-6">
+      <div className="flex items-center justify-between pt-2 border-t border-white/5">
+        <div className="flex items-center gap-6 mt-2">
           <button 
             onClick={() => setLiked(!liked)}
             className="flex items-center gap-2 text-zinc-400 hover:text-red-500 transition-colors group"
@@ -71,18 +69,18 @@ export const PostCard = memo(function PostCard({ author, timeAgo, content, image
             >
               <Heart className={`w-5 h-5 ${liked ? 'fill-red-500 text-red-500' : 'group-hover:fill-current'}`} />
             </motion.div>
-            <span className="text-xs font-medium">{stats.likes}</span>
+            <span className="text-xs font-medium">{likes + (liked ? 1 : 0)}</span>
           </button>
           <button className="flex items-center gap-2 text-zinc-400 hover:text-blue-500 transition-colors group">
             <MessageSquare className="w-5 h-5 group-hover:fill-current" />
-            <span className="text-xs font-medium">{stats.comments}</span>
+            <span className="text-xs font-medium">{comments}</span>
           </button>
           <button className="flex items-center gap-2 text-zinc-400 hover:text-emerald-500 transition-colors">
             <Repeat2 className="w-5 h-5" />
-            <span className="text-xs font-medium">{stats.shares}</span>
+            <span className="text-xs font-medium">{shares}</span>
           </button>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mt-2">
           <button className="text-zinc-400 hover:text-white transition-colors">
             <Share className="w-5 h-5" />
           </button>
@@ -91,6 +89,6 @@ export const PostCard = memo(function PostCard({ author, timeAgo, content, image
           </button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 });

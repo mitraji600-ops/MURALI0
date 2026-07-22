@@ -8,7 +8,10 @@ import {
   signInWithPopup, 
   signOut as firebaseSignOut,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendEmailVerification as firebaseSendEmailVerification,
+  sendPasswordResetEmail as firebaseSendPasswordResetEmail,
+  deleteUser as firebaseDeleteUser
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -19,6 +22,9 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signInWithEmail: (e: string, p: string) => Promise<any>;
   signUpWithEmail: (e: string, p: string) => Promise<any>;
+  sendVerificationEmail: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,6 +34,9 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   signInWithEmail: async () => {},
   signUpWithEmail: async () => {},
+  sendVerificationEmail: async () => {},
+  resetPassword: async () => {},
+  deleteAccount: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -35,12 +44,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      clearTimeout(timer);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, []);
 
   const signInWithGoogle = async () => {
@@ -58,7 +75,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUpWithEmail = async (email: string, pass: string) => {
-    return createUserWithEmailAndPassword(auth, email, pass);
+    const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+    if (userCred.user) {
+      await firebaseSendEmailVerification(userCred.user).catch(err => {
+        console.warn('Failed to send email verification automatically:', err);
+      });
+    }
+    return userCred;
+  };
+
+  const sendVerificationEmail = async () => {
+    if (auth.currentUser) {
+      await firebaseSendEmailVerification(auth.currentUser);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    await firebaseSendPasswordResetEmail(auth, email);
+  };
+
+  const deleteAccount = async () => {
+    if (auth.currentUser) {
+      await firebaseDeleteUser(auth.currentUser);
+    }
   };
 
   const signOut = async () => {
@@ -71,7 +110,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut, signInWithEmail, signUpWithEmail }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      signInWithGoogle, 
+      signOut, 
+      signInWithEmail, 
+      signUpWithEmail,
+      sendVerificationEmail,
+      resetPassword,
+      deleteAccount
+    }}>
       {children}
     </AuthContext.Provider>
   );
